@@ -3,4 +3,23 @@
     <string name="collections_url">https://shopicruit.myshopify.com/admin/custom_collections.json?page=1&amp;access_token=c32313df0d0ef512ca64d5b336a0d7c6</string>
     <string name="product_ids">https://shopicruit.myshopify.com/admin/collects.json?collection_id=%s&amp;page=1&amp;access_token=c32313df0d0ef512ca64d5b336a0d7c6</string>
     <string name="product_url">https://shopicruit.myshopify.com/admin/products.json?ids=%s&amp;page=1&amp;access_token=c32313df0d0ef512ca64d5b336a0d7c6</string>
+    <string name="url">URL</string>
+    <string name="callback">CALLBACK</string>
+    <string name="jsonName">title</string>
+    <string name="jsonBody">body_html</string>
+    <string name="jsonProducts">products</string>
+    <string name="jsonCollects">collects</string>
+    <string name="jsonCollections">custom_collections</string>
+    <string name="jsonImage">image</string>
+    <string name="jsonSrc">src</string>
+    <string name="jsonID">id</string>
+    <string name="fetchedData">FETCH_DATA</string>
+    <string name="callNum">CALL_NUM</string>
+    <string name="jsonProductID">product_id</string>
+    <string name="collection">COLLECTION</string>
+    <string name="jsonVariants">variants</string>
+    <string name="jsonInventoryQuantity">inventory_quantity</string>
+    <string name="in_stock_message">%s in stock</string>
+    <string name="collectionsListPage">Collections List</string>
+    <string name="collectionDetailPage">Collection Details</string>
 </resources>

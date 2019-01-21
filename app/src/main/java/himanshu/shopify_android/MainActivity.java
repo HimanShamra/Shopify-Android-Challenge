@@ -9,8 +9,11 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.AdapterView;
 import android.widget.BaseAdapter;
+import android.widget.ImageView;
 import android.widget.ListView;
 import android.widget.TextView;
+
+import com.squareup.picasso.Picasso;
 
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -28,12 +31,13 @@ public class MainActivity extends AppCompatActivity implements FetchServiceResul
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
+        setTitle(getString(R.string.collectionsListPage));
         FetchServiceResultReceiver fetchServiceCallback = new FetchServiceResultReceiver(new Handler());
         fetchServiceCallback.setReceiver(this);
 
         Intent intent = new Intent(MainActivity.this, FetchService.class);
-        intent.putExtra("URL",getResources().getString(R.string.collections_url));
-        intent.putExtra("callback",fetchServiceCallback);
+        intent.putExtra(getResources().getString(R.string.url),getResources().getString(R.string.collections_url));
+        intent.putExtra(getResources().getString(R.string.callback),fetchServiceCallback);
 
         this.startService(intent);
     }
@@ -41,20 +45,20 @@ public class MainActivity extends AppCompatActivity implements FetchServiceResul
     @Override
     public void onReceiveResult(int resultCode, Bundle resultData) {
         if (resultCode==1){
-            String data = resultData.getString("FETCH_DATA");
+            String data = resultData.getString(getResources().getString(R.string.fetchedData));
             Log.d("JSON",data);
             try {
                 collectionsList = new ArrayList<>();
                 JSONObject jsonData = new JSONObject(data);
-                JSONArray collections = jsonData.getJSONArray("custom_collections");
+                JSONArray collections = jsonData.getJSONArray(getResources().getString(R.string.jsonCollections));
 
                 for(int i=0;i<collections.length();i++){
                     JSONObject jsonCollection = collections.getJSONObject(i);
 
-                    collectionsList.add(new Collection(jsonCollection.getString("title"),
-                            jsonCollection.getString("body_html"),
-                            jsonCollection.getJSONObject("image").getString("src"),
-                            (Long)jsonCollection.get("id")));
+                    collectionsList.add(new Collection(jsonCollection.getString(getResources().getString(R.string.jsonName)),
+                            jsonCollection.getString(getResources().getString(R.string.jsonBody)),
+                            jsonCollection.getJSONObject(getResources().getString(R.string.jsonImage)).getString(getResources().getString(R.string.jsonSrc)),
+                            (Long)jsonCollection.get(getResources().getString(R.string.jsonID))));
 
                 }
 
@@ -105,21 +109,25 @@ public class MainActivity extends AppCompatActivity implements FetchServiceResul
         @Override
         public View getView(int index, View view, ViewGroup viewGroup) {
             ViewHolder viewHolder;
+            Collection selectedCollection = collections.get(index);
 
             if(view==null){
                 view=getLayoutInflater().inflate(R.layout.list_element,null);
                 viewHolder=new ViewHolder();
                 viewHolder.textViewKey=view.findViewById(R.id.product_name);
+                viewHolder.collectionImage=view.findViewById(R.id.collection_image);
                 view.setTag(viewHolder);
             }else{
                 viewHolder=(ViewHolder)view.getTag();
             }
-            viewHolder.textViewKey.setText(collections.get(index).getName());
+            viewHolder.textViewKey.setText(selectedCollection.getName());
+            Picasso.get().load(selectedCollection.getImage()).into(viewHolder.collectionImage);
             return view;
         }
 
         class ViewHolder {
             TextView textViewKey;
+            ImageView collectionImage;
         }
     }
 }

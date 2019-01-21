@@ -1,5 +1,6 @@
 package himanshu.shopify_android;
 
+
 import android.content.Intent;
 import android.os.Handler;
 import android.support.v7.app.AppCompatActivity;
@@ -10,7 +11,9 @@ import android.view.ViewGroup;
 import android.widget.BaseAdapter;
 import android.widget.ImageView;
 import android.widget.ListView;
+import android.widget.ProgressBar;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import com.squareup.picasso.Picasso;
 
@@ -26,14 +29,19 @@ public class CollectionsDetailsActivity extends AppCompatActivity implements Fet
     private static final int PRODUCTS_IDS_FETCH=1;
     private static final int PRODUCTS_INFO_FETCH=2;
     private ArrayList<Product> productList;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+
+        setTitle(getString(R.string.collectionDetailPage));;
         setContentView(R.layout.activity_collections_details);
+
+
         TextView collectionName = findViewById(R.id.collection_name);
         TextView collectionBody = findViewById(R.id.collection_body);
         ImageView collectionImage = findViewById(R.id.collection_image);
-        Collection currentCollection = getIntent().getParcelableExtra("COLLECTION");
+        Collection currentCollection = getIntent().getParcelableExtra(getResources().getString(R.string.collection));
         String productsList = String.format(getResources().getString(R.string.product_ids),Long.toString(currentCollection.getID()));
         collectionName.setText(currentCollection.getName());
         collectionBody.setText(currentCollection.getBody());
@@ -47,48 +55,49 @@ public class CollectionsDetailsActivity extends AppCompatActivity implements Fet
         fetchServiceCallback.setReceiver(this);
 
         Intent intent = new Intent(CollectionsDetailsActivity.this, FetchService.class);
-        intent.putExtra("URL",url);
-        intent.putExtra("CALL_NUM",fetchCallNumber);
-        intent.putExtra("callback",fetchServiceCallback);
+        intent.putExtra(getResources().getString(R.string.url),url);
+        intent.putExtra(getResources().getString(R.string.callNum),fetchCallNumber);
+        intent.putExtra(getResources().getString(R.string.callback),fetchServiceCallback);
         startService(intent);
     }
 
     @Override
     public void onReceiveResult(int resultCode, Bundle resultData) {
-        String data = resultData.getString("FETCH_DATA");
+        String data = resultData.getString(getResources().getString(R.string.fetchedData));
         if(resultCode==PRODUCTS_IDS_FETCH){
             try {
                 JSONObject jsonData = new JSONObject(data);
-                JSONArray collects = jsonData.getJSONArray("collects");
+                JSONArray collects = jsonData.getJSONArray(getResources().getString(R.string.jsonCollects));
 
                 StringBuffer urlBuffer = new StringBuffer();
 
                 for(int i=0;i<collects.length();i++){
                     JSONObject jsonCollection = collects.getJSONObject(i);
-                    urlBuffer.append(jsonCollection.getLong("product_id"));
+                    urlBuffer.append(jsonCollection.getLong(getResources().getString(R.string.jsonProductID)));
                     urlBuffer.append(",");
                 }
 
-                //TODO: CLEAN UP YOUR STRINGS
                 String URL = String.format(getResources().getString(R.string.product_url),urlBuffer.toString());
-                Log.d("PRODUCTDETAILS","URL: "+URL);
                 startFetchService(URL,PRODUCTS_INFO_FETCH);
             }catch(JSONException jException){
-                //TODO: ERROR HANDLING
+                Toast.makeText(this, "Couldn't translate JSON\n"+jException.getLocalizedMessage(), Toast.LENGTH_LONG).show();
             }
         }else if (resultCode==PRODUCTS_INFO_FETCH){
             try{
                 JSONObject jsonData = new JSONObject(data);
-                productList = prepareProductList(jsonData.getJSONArray("products"));
+                productList = prepareProductList(jsonData.getJSONArray(getResources().getString(R.string.jsonProducts)));
 
                 ListView productListView = findViewById(R.id.product_list_view);
                 productListView.setAdapter(new ProductsListAdapter(productList));
 
-            }catch (JSONException jException){
+                ProgressBar progressSpinner = findViewById(R.id.progress);
+                progressSpinner.setVisibility(View.GONE);
 
+            }catch (JSONException jException){
+                Toast.makeText(this, "Couldn't translate JSON\n"+jException.getLocalizedMessage(), Toast.LENGTH_LONG).show();
             }
         }else if (resultCode==0){
-            //TODO: ERROR HANDLING
+            Toast.makeText(this, "An unexpected error has occurred", Toast.LENGTH_LONG).show();
         }
     }
 
@@ -98,18 +107,18 @@ public class CollectionsDetailsActivity extends AppCompatActivity implements Fet
             for (int i = 0; i < productData.length(); i++) {
                 JSONObject jsonProduct = productData.getJSONObject(i);
                 ArrayList<String> variants = new ArrayList<>();
-                JSONArray jsonVariants = jsonProduct.getJSONArray("variants");
+                JSONArray jsonVariants = jsonProduct.getJSONArray(getResources().getString(R.string.jsonVariants));
                 int totalInventory=0;
                 for (int j = 0; j < jsonVariants.length(); j++){
                     JSONObject cVariant = jsonVariants.getJSONObject(j);
-                    totalInventory+=cVariant.getInt("inventory_quantity");
-                    variants.add(cVariant.getString("title"));
+                    totalInventory+=cVariant.getInt(getResources().getString(R.string.jsonInventoryQuantity));
+                    variants.add(cVariant.getString(getResources().getString(R.string.jsonName)));
                 }
                 products.add(new Product(
-                        jsonProduct.getString("title"),
-                        jsonProduct.getString("body_html"),
-                        jsonProduct.getJSONObject("image").getString("src"),
-                        jsonProduct.getLong("id"),
+                        jsonProduct.getString(getResources().getString(R.string.jsonName)),
+                        jsonProduct.getString(getResources().getString(R.string.jsonBody)),
+                        jsonProduct.getJSONObject(getResources().getString(R.string.jsonImage)).getString(getResources().getString(R.string.jsonSrc)),
+                        jsonProduct.getLong(getResources().getString(R.string.jsonID)),
                         totalInventory,
                         variants));
             }
@@ -152,16 +161,16 @@ public class CollectionsDetailsActivity extends AppCompatActivity implements Fet
                 view=getLayoutInflater().inflate(R.layout.product_list_element,null);
                 viewHolder=new ViewHolder();
                 viewHolder.productNameView =view.findViewById(R.id.product_name);
-                viewHolder.productBodyView = view.findViewById(R.id.product_body);
+                viewHolder.productBodyView = view.findViewById(R.id.collection_body);
                 viewHolder.productInventoryView = view.findViewById(R.id.product_inventory);
-                viewHolder.productImageView = view.findViewById(R.id.product_image);
+                viewHolder.productImageView = view.findViewById(R.id.collection_image);
                 view.setTag(viewHolder);
             }else{
                 viewHolder=(ViewHolder) view.getTag();
             }
             viewHolder.productNameView.setText(selectedProduct.getName());
             viewHolder.productBodyView.setText(selectedProduct.getBody());
-            viewHolder.productInventoryView.setText(String.format("%s in stock",String.valueOf(selectedProduct.getTotalInventory())));
+            viewHolder.productInventoryView.setText(String.format(getString(R.string.in_stock_message),String.valueOf(selectedProduct.getTotalInventory())));
             Picasso.get().load(selectedProduct.getImage()).into(viewHolder.productImageView);
             return view;
         }

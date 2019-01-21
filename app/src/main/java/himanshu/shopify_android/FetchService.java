@@ -29,22 +29,22 @@ public class FetchService extends IntentService {
     @Override
     protected void onHandleIntent(Intent intent) {
         if (intent != null) {
-            String url = intent.getStringExtra("URL");//TODO: USE STRINGS RES
+            String url = intent.getStringExtra(getResources().getString(R.string.url));
 
             OkHttpClient httpClient = new OkHttpClient();
 
             Request fetchRequest = new Request.Builder().url(url).build();
             try {
                 Response response = httpClient.newCall(fetchRequest).execute();
-                ResultReceiver receiver = intent.getParcelableExtra("callback");
+                ResultReceiver receiver = intent.getParcelableExtra(getResources().getString(R.string.callback));
 
                 String data = response.body().string();
                 Bundle bundle = new Bundle();
-                bundle.putString("FETCH_DATA",data);
-                receiver.send(intent.getIntExtra("CALL_NUM",1),bundle);
+                bundle.putString(getResources().getString(R.string.fetchedData),data);
+                receiver.send(intent.getIntExtra(getResources().getString(R.string.callNum),1),bundle);
                 Log.d("FetchService",data);
-            }catch(IOException IOE){
-                Log.d("FetchService","Failed Request");
+            }catch(IOException|NullPointerException IOE){
+                Log.d("FetchService","Failed Request\n"+IOE.getMessage());
             }
         }
     }
