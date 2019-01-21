@@ -9,10 +9,10 @@ import android.os.Parcelable
  */
 open class Collection(val name: String = "", val body: String = "", val image: String = "", val ID:Long=0) : Parcelable {
     constructor(parcel: Parcel) : this(
-            parcel.readString(),
-            parcel.readString(),
-            parcel.readString(),
-            parcel.readLong())
+        parcel.readString(),
+        parcel.readString(),
+        parcel.readString(),
+        parcel.readLong())
 
     override fun writeToParcel(parcel: Parcel, flags: Int) {
         parcel.writeString(name)
