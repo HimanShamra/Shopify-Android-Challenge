@@ -37,7 +37,7 @@ public class MainActivity extends AppCompatActivity implements FetchServiceResul
         fetchServiceCallback.setReceiver(this);
 
         Intent intent = new Intent(MainActivity.this, FetchService.class);
-        intent.putExtra(getResources().getString(R.string.url),getResources().getString(R.string.collections_url));
+        intent.putExtra(getResources().getString(R.string.url), getResources().getString(R.string.collections_url));
         intent.putExtra(getResources().getString(R.string.callback), fetchServiceCallback);
 
         this.startService(intent);
@@ -47,7 +47,7 @@ public class MainActivity extends AppCompatActivity implements FetchServiceResul
     public void onReceiveResult(int resultCode, Bundle resultData) {
         if (resultCode == 1){
             String data = resultData.getString(getResources().getString(R.string.fetchedData));
-            Log.d("JSON",data);
+            Log.d("JSON", data);
             try {
                 collectionsList = new ArrayList<>();
                 JSONObject jsonData = new JSONObject(data);
@@ -68,7 +68,7 @@ public class MainActivity extends AppCompatActivity implements FetchServiceResul
                 collectionsListView.setOnItemClickListener(listClickListener);
 
             }catch(JSONException jException){
-                Log.d("JSON",jException.getMessage());
+                Log.d("JSON", jException.getMessage());
                 //TODO:UPDATE UI ACCORDINGLY
             }
         }
@@ -113,7 +113,7 @@ public class MainActivity extends AppCompatActivity implements FetchServiceResul
             Collection selectedCollection = collections.get(index);
 
             if(view == null){
-                view=getLayoutInflater().inflate(R.layout.list_element, null);
+                view = getLayoutInflater().inflate(R.layout.list_element, null);
                 viewHolder = new ViewHolder();
                 viewHolder.textViewKey = view.findViewById(R.id.product_name);
                 viewHolder.collectionImage = view.findViewById(R.id.collection_image);
