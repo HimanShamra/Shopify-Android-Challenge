@@ -25,6 +25,7 @@ public class FetchService extends IntentService {
         super("FetchService");
     }
 
+
     @Override
     protected void onHandleIntent(Intent intent) {
         if (intent != null) {
@@ -40,7 +41,7 @@ public class FetchService extends IntentService {
                 String data = response.body().string();
                 Bundle bundle = new Bundle();
                 bundle.putString("FETCH_DATA",data);
-                receiver.send(1,bundle);
+                receiver.send(intent.getIntExtra("CALL_NUM",1),bundle);
                 Log.d("FetchService",data);
             }catch(IOException IOE){
                 Log.d("FetchService","Failed Request");
