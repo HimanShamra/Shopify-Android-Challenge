@@ -133,7 +133,7 @@ public class CollectionListActivity extends AppCompatActivity implements FetchSe
             if(view == null){
                 view = getLayoutInflater().inflate(R.layout.list_element, null);
                 viewHolder = new ViewHolder();
-                viewHolder.textViewKey = view.findViewById(R.id.product_name);
+                viewHolder.textViewKey = view.findViewById(R.id.collection_name);
                 viewHolder.collectionImage = view.findViewById(R.id.collection_image);
                 view.setTag(viewHolder);
             }else{

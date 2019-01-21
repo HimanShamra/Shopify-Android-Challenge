@@ -29,7 +29,7 @@
                 app:layout_constraintTop_toTopOf="parent" />
 
             <TextView
-                android:id="@+id/collection_body"
+                android:id="@+id/product_body"
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
                 android:layout_marginBottom="26dp"
@@ -61,10 +61,17 @@
             android:layout_height="wrap_content"
             android:layout_marginTop="30dp" />
 
+        <ExpandableListView
+            android:id="@+id/expandingList"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent" />
+
         <ListView
             android:id="@+id/product_list_view"
             android:layout_width="match_parent"
-            android:layout_height="match_parent" >
+            android:layout_height="match_parent"
+            android:visibility="gone">
+
         </ListView>
 
     </LinearLayout>

@@ -2,15 +2,17 @@ package himanshu.shopify_android;
 
 
 import android.content.Intent;
+import android.graphics.Paint;
 import android.os.Handler;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
-import android.util.Log;
+import android.util.Pair;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.BaseAdapter;
+import android.widget.BaseExpandableListAdapter;
+import android.widget.ExpandableListView;
 import android.widget.ImageView;
-import android.widget.ListView;
 import android.widget.ProgressBar;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -20,8 +22,11 @@ import com.squareup.picasso.Picasso;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
+import org.w3c.dom.Text;
 
 import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.Map;
 
 
 /**
@@ -47,7 +52,7 @@ public class CollectionsDetailsActivity extends AppCompatActivity implements Fet
         setContentView(R.layout.activity_collections_details);
 
         TextView collectionName = findViewById(R.id.collection_name);
-        TextView collectionBody = findViewById(R.id.collection_body);
+        TextView collectionBody = findViewById(R.id.product_body);
         ImageView collectionImage = findViewById(R.id.collection_image);
 
         Collection currentCollection = getIntent().getParcelableExtra(getResources().getString(R.string.collection));
@@ -115,8 +120,12 @@ public class CollectionsDetailsActivity extends AppCompatActivity implements Fet
                 JSONObject jsonData = new JSONObject(data);
                 productList = prepareProductList(jsonData.getJSONArray(getResources().getString(R.string.jsonProducts)));
 
-                ListView productListView = findViewById(R.id.product_list_view);
-                productListView.setAdapter(new ProductsListAdapter(productList));
+                //ListView productListView = findViewById(R.id.product_list_view);
+                //productListView.setAdapter(new ProductsListAdapter(productList));
+
+                ExpandableListView exList = (ExpandableListView) findViewById(R.id.expandingList);
+                ProductsListExAdapter exAdpt = new ProductsListExAdapter(productList);
+                exList.setAdapter(exAdpt);
 
                 ProgressBar progressSpinner = findViewById(R.id.progress);
                 progressSpinner.setVisibility(View.GONE);
@@ -137,19 +146,21 @@ public class CollectionsDetailsActivity extends AppCompatActivity implements Fet
         try {
             for (int i = 0; i < productData.length(); i++) {
                 JSONObject jsonProduct = productData.getJSONObject(i);
-                ArrayList<String> variants = new ArrayList<>();
+                ArrayList<Pair<String,Integer>> variants = new ArrayList<>();
                 JSONArray jsonVariants = jsonProduct.getJSONArray(getResources().getString(R.string.jsonVariants));
                 int totalInventory = 0;
 
                 for (int j = 0; j < jsonVariants.length(); j++){
                     JSONObject cVariant = jsonVariants.getJSONObject(j);
                     totalInventory += cVariant.getInt(getResources().getString(R.string.jsonInventoryQuantity));
-                    variants.add(cVariant.getString(getResources().getString(R.string.jsonName)));
+                    variants.add(new Pair(cVariant.getString(getResources().getString(R.string.jsonName)),
+                            cVariant.getInt(getResources().getString(R.string.jsonInventoryQuantity))));
                 }
                 products.add(new Product(
                         jsonProduct.getString(getResources().getString(R.string.jsonName)),
                         jsonProduct.getString(getResources().getString(R.string.jsonBody)),
-                        jsonProduct.getJSONObject(getResources().getString(R.string.jsonImage)).getString(getResources().getString(R.string.jsonSrc)),
+                        jsonProduct.getJSONObject(getResources().getString(R.string.jsonImage)).
+                                getString(getResources().getString(R.string.jsonSrc)),
                         jsonProduct.getLong(getResources().getString(R.string.jsonID)),
                         totalInventory,
                         variants));
@@ -160,61 +171,84 @@ public class CollectionsDetailsActivity extends AppCompatActivity implements Fet
         return  products;
     }
 
+
     /**
-     * Simple implementation of BaseAdapter for Product listing
+     * An Adapter for the ExpandableListView
      */
-    public class ProductsListAdapter extends BaseAdapter {
+    class ProductsListExAdapter extends BaseExpandableListAdapter{
+
         ArrayList<Product> products;
-        public ProductsListAdapter(ArrayList<Product> products){
-            this.products = products;
+        public ProductsListExAdapter(ArrayList<Product> products){
+            this.products=products;
         }
 
         @Override
-        public int getCount() {
-            return products.size();
+        public View getGroupView(int index, boolean isExpanded, View view, ViewGroup viewGroup) {
+            View cView = view;
+            Product selectedProduct = products.get(index);
+
+            if(cView==null){
+                cView = getLayoutInflater().inflate(R.layout.product_list_element,null);
+            }
+            TextView name = cView.findViewById(R.id.product_name);
+            TextView body = cView.findViewById(R.id.product_body);
+            TextView stock = cView.findViewById(R.id.product_inventory);
+            ImageView image = cView.findViewById(R.id.product_image);
+
+            name.setText(selectedProduct.getName());
+            body.setText(selectedProduct.getBody());
+            stock.setText(String.format(getString(R.string.in_stock_message),
+                    String.valueOf(selectedProduct.getTotalInventory())));
+            Picasso.get().load(selectedProduct.getImage()).into(image);
+            return cView;
         }
 
         @Override
-        public Object getItem(int index) {
-            return products.get(index);
-        }
+        public View getChildView(int index, int index1, boolean isExpanded, View view,
+                                 ViewGroup viewGroup) {
+            View cView = view;
+            String selectedVariant = products.get(index).getVariants().get(index1).first;
+            int stock = products.get(index).getVariants().get(index1).second;
+            if(cView==null){
+                cView = getLayoutInflater().inflate(R.layout.product_child_list_element,null);
+            }
+            TextView variantName = cView.findViewById(R.id.variant_name);
+            TextView inventory = cView.findViewById(R.id.variant_inventory);
 
-        @Override
-        public long getItemId(int i) {
-            return i;
+            variantName.setText(selectedVariant);
+            inventory.setText(String.format(getResources().getString(R.string.in_stock_message),
+                    String.valueOf(stock)));
+            return cView;
         }
 
         /**
-         * Uses a ViewHolder for smooth scrolling by decreasing the amount of times findViewById() is called
+         * Boilerplate code below
          */
+
         @Override
-        public View getView(int index, View view, ViewGroup viewGroup) {
-            ViewHolder viewHolder;
+        public int getGroupCount() {return products.size();}
 
-            Product selectedProduct = products.get(index);
-            if(view == null){
-                view = getLayoutInflater().inflate(R.layout.product_list_element,null);
-                viewHolder = new ViewHolder();
-                viewHolder.productNameView =view.findViewById(R.id.product_name);
-                viewHolder.productBodyView = view.findViewById(R.id.collection_body);
-                viewHolder.productInventoryView = view.findViewById(R.id.product_inventory);
-                viewHolder.productImageView = view.findViewById(R.id.collection_image);
-                view.setTag(viewHolder);
-            }else{
-                viewHolder = (ViewHolder) view.getTag();
-            }
-            viewHolder.productNameView.setText(selectedProduct.getName());
-            viewHolder.productBodyView.setText(selectedProduct.getBody());
-            viewHolder.productInventoryView.setText(String.format(getString(R.string.in_stock_message), String.valueOf(selectedProduct.getTotalInventory())));
-            Picasso.get().load(selectedProduct.getImage()).into(viewHolder.productImageView);
-            return view;
-        }
+        @Override
+        public int getChildrenCount(int i) {return products.get(i).getVariants().size();}
 
-        class ViewHolder {
-            TextView productNameView;
-            TextView productBodyView;
-            TextView productInventoryView;
-            ImageView productImageView;
+        @Override
+        public Object getGroup(int i) {return products.get(i);}
+
+        @Override
+        public Object getChild(int i, int j) {return products.get(i).getVariants().get(j);}
+
+        @Override
+        public long getGroupId(int i) {return 0;}
+
+        @Override
+        public long getChildId(int i, int i1) {return 0;}
+
+        @Override
+        public boolean hasStableIds() {return false;}
+
+        @Override
+        public boolean isChildSelectable(int i, int i1) {
+            return false;
         }
     }
 }
