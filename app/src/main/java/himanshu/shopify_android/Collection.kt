@@ -6,6 +6,7 @@ import android.os.Parcelable
 /**
  * Created by Himanshu on 2019-01-17.
  *
+ * Collection data class, implementing Parcelable to be passed through Intent
  */
 open class Collection(val name: String = "", val body: String = "", val image: String = "", val ID:Long=0) : Parcelable {
     constructor(parcel: Parcel) : this(

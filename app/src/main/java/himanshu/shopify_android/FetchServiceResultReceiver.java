@@ -6,6 +6,7 @@ import android.os.ResultReceiver;
 
 /**
  * Created by Himanshu Sharma on 2019-01-17.
+ * A simple ResultReceiver implementation, Allows for communication between the FetchService IntentService and Activities
  */
 
 public class FetchServiceResultReceiver extends ResultReceiver {
@@ -13,7 +14,6 @@ public class FetchServiceResultReceiver extends ResultReceiver {
 
     public FetchServiceResultReceiver(Handler handler) {
         super(handler);
-        // TODO Auto-generated constructor stub
     }
 
     public interface Receiver {

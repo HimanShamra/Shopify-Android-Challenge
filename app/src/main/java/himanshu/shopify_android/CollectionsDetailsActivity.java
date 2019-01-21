@@ -23,13 +23,21 @@ import org.json.JSONObject;
 
 import java.util.ArrayList;
 
+
+/**
+ * CollectionDetailsActivity for the Collections Details page
+ */
+
 public class CollectionsDetailsActivity extends AppCompatActivity implements FetchServiceResultReceiver.Receiver{
 
-
+    //Call Numbers for each time the FetchService is called
     private static final int PRODUCTS_IDS_FETCH = 1;
     private static final int PRODUCTS_INFO_FETCH = 2;
     private ArrayList<Product> productList;
 
+    /**
+     * onCreate initializes the FetchService to find Product IDs and the Card at the top of the screen
+     */
     @Override
     protected void onCreate(Bundle savedInstanceState) {
 
@@ -41,15 +49,22 @@ public class CollectionsDetailsActivity extends AppCompatActivity implements Fet
         TextView collectionName = findViewById(R.id.collection_name);
         TextView collectionBody = findViewById(R.id.collection_body);
         ImageView collectionImage = findViewById(R.id.collection_image);
+
         Collection currentCollection = getIntent().getParcelableExtra(getResources().getString(R.string.collection));
         String productsList = String.format(getResources().getString(R.string.product_ids), Long.toString(currentCollection.getID()));
+        startFetchService(productsList, PRODUCTS_IDS_FETCH);
+
         collectionName.setText(currentCollection.getName());
         collectionBody.setText(currentCollection.getBody());
-
         Picasso.get().load(currentCollection.getImage()).into(collectionImage);
-        startFetchService(productsList, PRODUCTS_IDS_FETCH);
     }
 
+    /**
+     * Function to call the IntentService
+     *
+     * url: url of the location to fetch data from
+     * fetchCallNumber: call number for the FetchService
+     */
     private void startFetchService(String url,int fetchCallNumber){
 
         FetchServiceResultReceiver fetchServiceCallback = new FetchServiceResultReceiver(new Handler());
@@ -62,6 +77,16 @@ public class CollectionsDetailsActivity extends AppCompatActivity implements Fet
         startService(intent);
     }
 
+    /**
+     * Called when data is received from FetchService
+     *
+     * resultCode: corresponds to whatever call number was provided in the Intent when the service was started, 1 by default.
+     *              resultCode==0: a failure in fetching.
+     *              resultCode==1: product IDs were fetched and will be used to call the FetchService again to find product data
+     *              resultCode==2: product data was fetched and will be parsed to create an array of Products for ListView
+     *
+     * resultData: data that is received, null if resultCode ==0
+     */
     @Override
     public void onReceiveResult(int resultCode, Bundle resultData) {
 
@@ -104,6 +129,9 @@ public class CollectionsDetailsActivity extends AppCompatActivity implements Fet
         }
     }
 
+    /**
+     * Creates an ArrayList of Product given a JSON array which contains the data
+     */
     private ArrayList<Product> prepareProductList(JSONArray productData){
         ArrayList<Product> products = new ArrayList<>();
         try {
@@ -127,11 +155,14 @@ public class CollectionsDetailsActivity extends AppCompatActivity implements Fet
                         variants));
             }
         }catch(JSONException jException){
-            Log.d("Product-Test", jException.getMessage());
+            Toast.makeText(this, "Couldn't translate JSON\n" + jException.getLocalizedMessage(), Toast.LENGTH_LONG).show();
         }
         return  products;
     }
 
+    /**
+     * Simple implementation of BaseAdapter for Product listing
+     */
     public class ProductsListAdapter extends BaseAdapter {
         ArrayList<Product> products;
         public ProductsListAdapter(ArrayList<Product> products){

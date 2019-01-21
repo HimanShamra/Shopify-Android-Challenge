@@ -16,8 +16,8 @@ import okhttp3.Response;
 /**
  * An {@link IntentService} subclass for handling asynchronous task requests in
  * a service on a separate handler thread.
- * <p>
- * helper methods.
+ *
+ * Used by Activities to fetch data on a separate worker thread
  */
 public class FetchService extends IntentService {
 

@@ -21,11 +21,17 @@ import org.json.JSONObject;
 
 import java.util.ArrayList;
 
-public class MainActivity extends AppCompatActivity implements FetchServiceResultReceiver.Receiver{
+/**
+ * Activity for Collection List page, utilizes an IntentService to fetch JSON
+ */
+public class CollectionListActivity extends AppCompatActivity implements FetchServiceResultReceiver.Receiver{
 
 
     private ArrayList<Collection> collectionsList;
 
+    /**
+     * onCreate() starts the fetching service and initializes the ResultReceiver, both through an Intent
+     */
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         
@@ -36,13 +42,19 @@ public class MainActivity extends AppCompatActivity implements FetchServiceResul
         FetchServiceResultReceiver fetchServiceCallback = new FetchServiceResultReceiver(new Handler());
         fetchServiceCallback.setReceiver(this);
 
-        Intent intent = new Intent(MainActivity.this, FetchService.class);
+        Intent intent = new Intent(CollectionListActivity.this, FetchService.class);
         intent.putExtra(getResources().getString(R.string.url), getResources().getString(R.string.collections_url));
         intent.putExtra(getResources().getString(R.string.callback), fetchServiceCallback);
 
         this.startService(intent);
     }
 
+    /**
+     *  Runs when FetchService is complete.
+     *
+     *  resultCode: which service number is fetched, 1 by default. A value of 0 means a failure to fetch data
+     *  resultData: contains the data that is fetched, null if resultCode ==0
+     */
     @Override
     public void onReceiveResult(int resultCode, Bundle resultData) {
         if (resultCode == 1){
@@ -74,15 +86,21 @@ public class MainActivity extends AppCompatActivity implements FetchServiceResul
         }
     }
 
+    /**
+     * An onClickListener for the elements in the list, onClick it starts the next activity and passes a Collection Object through the Intent
+     */
     private AdapterView.OnItemClickListener listClickListener = new AdapterView.OnItemClickListener() {
         @Override
         public void onItemClick(AdapterView<?> adapterView, View view, int index, long id) {
-            Intent collectionDetailsIntent = new Intent(MainActivity.this, CollectionsDetailsActivity.class);
-            collectionDetailsIntent.putExtra("COLLECTION", collectionsList.get(index));
+            Intent collectionDetailsIntent = new Intent(CollectionListActivity.this, CollectionsDetailsActivity.class);
+            collectionDetailsIntent.putExtra(getResources().getString(R.string.collection), collectionsList.get(index));
             startActivity(collectionDetailsIntent);
         }
     };
 
+    /**
+     * A simple BaseAdapter implementation
+     */
     public class CollectionsListAdapter extends BaseAdapter {
         ArrayList<Collection> collections;
         public CollectionsListAdapter(ArrayList<Collection> collections){
