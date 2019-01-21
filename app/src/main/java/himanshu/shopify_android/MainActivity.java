@@ -28,6 +28,7 @@ public class MainActivity extends AppCompatActivity implements FetchServiceResul
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
+        
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
@@ -36,23 +37,23 @@ public class MainActivity extends AppCompatActivity implements FetchServiceResul
         fetchServiceCallback.setReceiver(this);
 
         Intent intent = new Intent(MainActivity.this, FetchService.class);
-        intent.putExtra(getResources().getString(R.string.url),getResources().getString(R.string.collections_url));
-        intent.putExtra(getResources().getString(R.string.callback),fetchServiceCallback);
+        intent.putExtra(getResources().getString(R.string.url), getResources().getString(R.string.collections_url));
+        intent.putExtra(getResources().getString(R.string.callback), fetchServiceCallback);
 
         this.startService(intent);
     }
 
     @Override
     public void onReceiveResult(int resultCode, Bundle resultData) {
-        if (resultCode==1){
+        if (resultCode == 1){
             String data = resultData.getString(getResources().getString(R.string.fetchedData));
-            Log.d("JSON",data);
+            Log.d("JSON", data);
             try {
                 collectionsList = new ArrayList<>();
                 JSONObject jsonData = new JSONObject(data);
                 JSONArray collections = jsonData.getJSONArray(getResources().getString(R.string.jsonCollections));
 
-                for(int i=0;i<collections.length();i++){
+                for(int i = 0; i < collections.length(); i++){
                     JSONObject jsonCollection = collections.getJSONObject(i);
 
                     collectionsList.add(new Collection(jsonCollection.getString(getResources().getString(R.string.jsonName)),
@@ -67,7 +68,7 @@ public class MainActivity extends AppCompatActivity implements FetchServiceResul
                 collectionsListView.setOnItemClickListener(listClickListener);
 
             }catch(JSONException jException){
-                Log.d("JSON",jException.getMessage());
+                Log.d("JSON", jException.getMessage());
                 //TODO:UPDATE UI ACCORDINGLY
             }
         }
@@ -76,8 +77,8 @@ public class MainActivity extends AppCompatActivity implements FetchServiceResul
     private AdapterView.OnItemClickListener listClickListener = new AdapterView.OnItemClickListener() {
         @Override
         public void onItemClick(AdapterView<?> adapterView, View view, int index, long id) {
-            Intent collectionDetailsIntent = new Intent(MainActivity.this,CollectionsDetailsActivity.class);
-            collectionDetailsIntent.putExtra("COLLECTION",collectionsList.get(index));
+            Intent collectionDetailsIntent = new Intent(MainActivity.this, CollectionsDetailsActivity.class);
+            collectionDetailsIntent.putExtra("COLLECTION", collectionsList.get(index));
             startActivity(collectionDetailsIntent);
         }
     };
@@ -85,7 +86,7 @@ public class MainActivity extends AppCompatActivity implements FetchServiceResul
     public class CollectionsListAdapter extends BaseAdapter {
         ArrayList<Collection> collections;
         public CollectionsListAdapter(ArrayList<Collection> collections){
-            this.collections =collections;
+            this.collections = collections;
         }
 
         @Override
@@ -111,14 +112,14 @@ public class MainActivity extends AppCompatActivity implements FetchServiceResul
             ViewHolder viewHolder;
             Collection selectedCollection = collections.get(index);
 
-            if(view==null){
-                view=getLayoutInflater().inflate(R.layout.list_element,null);
-                viewHolder=new ViewHolder();
-                viewHolder.textViewKey=view.findViewById(R.id.product_name);
-                viewHolder.collectionImage=view.findViewById(R.id.collection_image);
+            if(view == null){
+                view = getLayoutInflater().inflate(R.layout.list_element, null);
+                viewHolder = new ViewHolder();
+                viewHolder.textViewKey = view.findViewById(R.id.product_name);
+                viewHolder.collectionImage = view.findViewById(R.id.collection_image);
                 view.setTag(viewHolder);
             }else{
-                viewHolder=(ViewHolder)view.getTag();
+                viewHolder = (ViewHolder)view.getTag();
             }
             viewHolder.textViewKey.setText(selectedCollection.getName());
             Picasso.get().load(selectedCollection.getImage()).into(viewHolder.collectionImage);

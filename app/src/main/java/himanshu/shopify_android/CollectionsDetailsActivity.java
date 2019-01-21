@@ -26,63 +26,66 @@ import java.util.ArrayList;
 public class CollectionsDetailsActivity extends AppCompatActivity implements FetchServiceResultReceiver.Receiver{
 
 
-    private static final int PRODUCTS_IDS_FETCH=1;
-    private static final int PRODUCTS_INFO_FETCH=2;
+    private static final int PRODUCTS_IDS_FETCH = 1;
+    private static final int PRODUCTS_INFO_FETCH = 2;
     private ArrayList<Product> productList;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
+
         super.onCreate(savedInstanceState);
 
         setTitle(getString(R.string.collectionDetailPage));;
         setContentView(R.layout.activity_collections_details);
 
-
         TextView collectionName = findViewById(R.id.collection_name);
         TextView collectionBody = findViewById(R.id.collection_body);
         ImageView collectionImage = findViewById(R.id.collection_image);
         Collection currentCollection = getIntent().getParcelableExtra(getResources().getString(R.string.collection));
-        String productsList = String.format(getResources().getString(R.string.product_ids),Long.toString(currentCollection.getID()));
+        String productsList = String.format(getResources().getString(R.string.product_ids), Long.toString(currentCollection.getID()));
         collectionName.setText(currentCollection.getName());
         collectionBody.setText(currentCollection.getBody());
 
         Picasso.get().load(currentCollection.getImage()).into(collectionImage);
-        startFetchService(productsList,PRODUCTS_IDS_FETCH);
+        startFetchService(productsList, PRODUCTS_IDS_FETCH);
     }
 
     private void startFetchService(String url,int fetchCallNumber){
+
         FetchServiceResultReceiver fetchServiceCallback = new FetchServiceResultReceiver(new Handler());
         fetchServiceCallback.setReceiver(this);
 
         Intent intent = new Intent(CollectionsDetailsActivity.this, FetchService.class);
-        intent.putExtra(getResources().getString(R.string.url),url);
-        intent.putExtra(getResources().getString(R.string.callNum),fetchCallNumber);
-        intent.putExtra(getResources().getString(R.string.callback),fetchServiceCallback);
+        intent.putExtra(getResources().getString(R.string.url), url);
+        intent.putExtra(getResources().getString(R.string.callNum), fetchCallNumber);
+        intent.putExtra(getResources().getString(R.string.callback), fetchServiceCallback);
         startService(intent);
     }
 
     @Override
     public void onReceiveResult(int resultCode, Bundle resultData) {
+
         String data = resultData.getString(getResources().getString(R.string.fetchedData));
-        if(resultCode==PRODUCTS_IDS_FETCH){
+
+        if(resultCode == PRODUCTS_IDS_FETCH){
             try {
                 JSONObject jsonData = new JSONObject(data);
                 JSONArray collects = jsonData.getJSONArray(getResources().getString(R.string.jsonCollects));
-
                 StringBuffer urlBuffer = new StringBuffer();
 
-                for(int i=0;i<collects.length();i++){
+                for(int i = 0; i < collects.length(); i++){
                     JSONObject jsonCollection = collects.getJSONObject(i);
                     urlBuffer.append(jsonCollection.getLong(getResources().getString(R.string.jsonProductID)));
                     urlBuffer.append(",");
                 }
 
                 String URL = String.format(getResources().getString(R.string.product_url),urlBuffer.toString());
-                startFetchService(URL,PRODUCTS_INFO_FETCH);
+                startFetchService(URL, PRODUCTS_INFO_FETCH);
+
             }catch(JSONException jException){
-                Toast.makeText(this, "Couldn't translate JSON\n"+jException.getLocalizedMessage(), Toast.LENGTH_LONG).show();
+                Toast.makeText(this, "Couldn't translate JSON\n" + jException.getLocalizedMessage(), Toast.LENGTH_LONG).show();
             }
-        }else if (resultCode==PRODUCTS_INFO_FETCH){
+        }else if (resultCode == PRODUCTS_INFO_FETCH){
             try{
                 JSONObject jsonData = new JSONObject(data);
                 productList = prepareProductList(jsonData.getJSONArray(getResources().getString(R.string.jsonProducts)));
@@ -94,9 +97,9 @@ public class CollectionsDetailsActivity extends AppCompatActivity implements Fet
                 progressSpinner.setVisibility(View.GONE);
 
             }catch (JSONException jException){
-                Toast.makeText(this, "Couldn't translate JSON\n"+jException.getLocalizedMessage(), Toast.LENGTH_LONG).show();
+                Toast.makeText(this, "Couldn't translate JSON\n" + jException.getLocalizedMessage(), Toast.LENGTH_LONG).show();
             }
-        }else if (resultCode==0){
+        }else if (resultCode == 0){
             Toast.makeText(this, "An unexpected error has occurred", Toast.LENGTH_LONG).show();
         }
     }
@@ -108,10 +111,11 @@ public class CollectionsDetailsActivity extends AppCompatActivity implements Fet
                 JSONObject jsonProduct = productData.getJSONObject(i);
                 ArrayList<String> variants = new ArrayList<>();
                 JSONArray jsonVariants = jsonProduct.getJSONArray(getResources().getString(R.string.jsonVariants));
-                int totalInventory=0;
+                int totalInventory = 0;
+
                 for (int j = 0; j < jsonVariants.length(); j++){
                     JSONObject cVariant = jsonVariants.getJSONObject(j);
-                    totalInventory+=cVariant.getInt(getResources().getString(R.string.jsonInventoryQuantity));
+                    totalInventory += cVariant.getInt(getResources().getString(R.string.jsonInventoryQuantity));
                     variants.add(cVariant.getString(getResources().getString(R.string.jsonName)));
                 }
                 products.add(new Product(
@@ -123,7 +127,7 @@ public class CollectionsDetailsActivity extends AppCompatActivity implements Fet
                         variants));
             }
         }catch(JSONException jException){
-            Log.d("Product-Test",jException.getMessage());
+            Log.d("Product-Test", jException.getMessage());
         }
         return  products;
     }
@@ -157,20 +161,20 @@ public class CollectionsDetailsActivity extends AppCompatActivity implements Fet
             ViewHolder viewHolder;
 
             Product selectedProduct = products.get(index);
-            if(view==null){
-                view=getLayoutInflater().inflate(R.layout.product_list_element,null);
-                viewHolder=new ViewHolder();
+            if(view == null){
+                view = getLayoutInflater().inflate(R.layout.product_list_element,null);
+                viewHolder = new ViewHolder();
                 viewHolder.productNameView =view.findViewById(R.id.product_name);
                 viewHolder.productBodyView = view.findViewById(R.id.collection_body);
                 viewHolder.productInventoryView = view.findViewById(R.id.product_inventory);
                 viewHolder.productImageView = view.findViewById(R.id.collection_image);
                 view.setTag(viewHolder);
             }else{
-                viewHolder=(ViewHolder) view.getTag();
+                viewHolder = (ViewHolder) view.getTag();
             }
             viewHolder.productNameView.setText(selectedProduct.getName());
             viewHolder.productBodyView.setText(selectedProduct.getBody());
-            viewHolder.productInventoryView.setText(String.format(getString(R.string.in_stock_message),String.valueOf(selectedProduct.getTotalInventory())));
+            viewHolder.productInventoryView.setText(String.format(getString(R.string.in_stock_message), String.valueOf(selectedProduct.getTotalInventory())));
             Picasso.get().load(selectedProduct.getImage()).into(viewHolder.productImageView);
             return view;
         }
