@@ -80,7 +80,7 @@ public class CollectionsDetailsActivity extends AppCompatActivity implements Fet
                 }
 
                 String URL = String.format(getResources().getString(R.string.product_url),urlBuffer.toString());
-                startFetchService(URL,PRODUCTS_INFO_FETCH);
+                startFetchService(URL, PRODUCTS_INFO_FETCH);
 
             }catch(JSONException jException){
                 Toast.makeText(this, "Couldn't translate JSON\n" + jException.getLocalizedMessage(), Toast.LENGTH_LONG).show();
@@ -162,19 +162,19 @@ public class CollectionsDetailsActivity extends AppCompatActivity implements Fet
 
             Product selectedProduct = products.get(index);
             if(view == null){
-                view=getLayoutInflater().inflate(R.layout.product_list_element,null);
-                viewHolder=new ViewHolder();
+                view = getLayoutInflater().inflate(R.layout.product_list_element,null);
+                viewHolder = new ViewHolder();
                 viewHolder.productNameView =view.findViewById(R.id.product_name);
                 viewHolder.productBodyView = view.findViewById(R.id.collection_body);
                 viewHolder.productInventoryView = view.findViewById(R.id.product_inventory);
                 viewHolder.productImageView = view.findViewById(R.id.collection_image);
                 view.setTag(viewHolder);
             }else{
-                viewHolder=(ViewHolder) view.getTag();
+                viewHolder = (ViewHolder) view.getTag();
             }
             viewHolder.productNameView.setText(selectedProduct.getName());
             viewHolder.productBodyView.setText(selectedProduct.getBody());
-            viewHolder.productInventoryView.setText(String.format(getString(R.string.in_stock_message),String.valueOf(selectedProduct.getTotalInventory())));
+            viewHolder.productInventoryView.setText(String.format(getString(R.string.in_stock_message), String.valueOf(selectedProduct.getTotalInventory())));
             Picasso.get().load(selectedProduct.getImage()).into(viewHolder.productImageView);
             return view;
         }
